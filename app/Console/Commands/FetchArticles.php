@@ -58,7 +58,7 @@ class FetchArticles extends Command
     {
         try {
             $apiKey = env('NEWS_API_KEY');
-            $response = Http::get('https://newsapi.org/v2/top-headlines', [
+            $response = Http::retry('3','100')->timeout(10)->get('https://newsapi.org/v2/top-headlines', [
                 'apiKey' => $apiKey,
                 'country' => 'us',
                 'pageSize' => 10,
@@ -94,7 +94,7 @@ class FetchArticles extends Command
     {
         try {
             $apikey = env('GUARDIAN_API_KEY');
-            $response = Http::get('https://content.guardianapis.com/search', [
+            $response = Http::retry('3','100')->timeout(10)->get('https://content.guardianapis.com/search', [
                 'api-key' => $apikey,
                 'section' => 'technology',
                 'show-fields' => 'headline,bodyText,webUrl',
@@ -136,7 +136,7 @@ class FetchArticles extends Command
             $beginDate = now()->subWeek()->format('Ymd'); // Last week's articles
             $endDate = now()->format('Ymd'); // Today's date
 
-            $response = Http::get('https://api.nytimes.com/svc/search/v2/articlesearch.json', [
+            $response = Http::retry('3','100')->timeout(10)->get('https://api.nytimes.com/svc/search/v2/articlesearch.json', [
                 'api-key' => $apiKey,
                 'q' => $query, // Keyword-based search
                 'begin_date' => $beginDate, // Start date
