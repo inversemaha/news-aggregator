@@ -10,13 +10,26 @@ class ArticleController extends Controller
 {
     public function index(Request $request)
     {
-        $articles = Article::query()
-            ->where($request->category, fn($query) => $query->where('category', $request->category))
-            ->where($request->source, fn($query) => $query->where('source', $request->source))
-            ->where($request->keyword, fn($query) => $query->where('title', 'like', "%{$request->keyword}%"))
-            ->paginate(10);
+        $query = Article::query();
 
-        return response()->json($articles);
+        if ($request->filled('keyword')){
+            $query -> where('title', 'like', '%'.$request->keyword.'%')
+                    ->orWhere('description', 'like', '%'.$request->keyword.'%');
+        }
+
+        if ($request->filled('date')){
+            $query -> whereDate('published_at', $request->date);
+        }
+
+        if ($request->filled('category')){
+            $query -> where('category', $request->category);
+        }
+
+        if ($request->filled('source')){
+            $query -> where('source', $request->source);
+        }
+
+        return response()->json($query->paginate(10));
     }
 
     public function show($id)
