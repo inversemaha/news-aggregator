@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Article;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -57,7 +58,7 @@ class FetchArticles extends Command
     private function fetchFromNewsAPI()
     {
         try {
-            $apiKey = env('NEWS_API_KEY');
+            $apiKey = config('api_keys.news_api');
             $response = Http::retry('3','100')->timeout(10)->get('https://newsapi.org/v2/top-headlines', [
                 'apiKey' => $apiKey,
                 'country' => 'us',
@@ -76,7 +77,9 @@ class FetchArticles extends Command
                             'source' => 'NewsAPI',
                             'category' => $article['source']['name'] ?? 'General',
                             'author' => $article['author'] ?? 'Unknown',
-                            'published_at' => $article['publishedAt'],
+                            'published_at' => isset($article['publishedAt'])
+                                ? Carbon::parse($article['publishedAt'])->format('Y-m-d H:i:s')
+                                : now(),
                         ]
                     );
                 }
@@ -93,7 +96,7 @@ class FetchArticles extends Command
     private function fetchFromGuardianApi()
     {
         try {
-            $apikey = env('GUARDIAN_API_KEY');
+            $apikey = config('api_keys.guardian_api');
             $response = Http::retry('3','100')->timeout(10)->get('https://content.guardianapis.com/search', [
                 'api-key' => $apikey,
                 'section' => 'technology',
@@ -113,7 +116,9 @@ class FetchArticles extends Command
                             'source' => 'The Guardian',
                             'category' => $article['sectionName'] ?? 'General',
                             'author' => null,
-                            'published_at' => $article['webPublicationDate'],
+                            'published_at' => isset($article['webPublicationDate'])
+                                ? Carbon::parse($article['webPublicationDate'])->format('Y-m-d H:i:s')
+                                : now(),
                         ]
                     );
                 }
@@ -131,7 +136,7 @@ class FetchArticles extends Command
     private function fetchFromNewYorkTimesApi()
     {
         try {
-            $apiKey = env('NYTIMES_API_KEY');
+            $apiKey = config('api_keys.nytimes_api');
             $query = 'technology'; // Replace with the topic or keyword you want to search for
             $beginDate = now()->subWeek()->format('Ymd'); // Last week's articles
             $endDate = now()->format('Ymd'); // Today's date
@@ -156,7 +161,9 @@ class FetchArticles extends Command
                             'source' => 'New York Times',
                             'category' => $article['section_name'] ?? 'General',
                             'author' => $article['byline']['original'] ?? null,
-                            'published_at' => $article['pub_date'],
+                            'published_at' => isset($article['pub_date'])
+                                ? Carbon::parse($article['pub_date'])->format('Y-m-d H:i:s')
+                                : now(),
                         ]
                     );
                 }
