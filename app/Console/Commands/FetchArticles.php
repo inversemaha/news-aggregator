@@ -101,5 +101,40 @@ class FetchArticles extends Command
         }
     }
 
+    private function fetchFromNewYorkTimesApi()
+    {
+        $apiKey = env('NYTIMES_API_KEY');
+        $query = 'technology'; // Replace with the topic or keyword you want to search for
+        $beginDate = now()->subWeek()->format('Ymd'); // Last week's articles
+        $endDate = now()->format('Ymd'); // Today's date
+
+        $response = Http::get('https://api.nytimes.com/svc/search/v2/articlesearch.json', [
+            'api-key' => $apiKey,
+            'q' => $query, // Keyword-based search
+            'begin_date' => $beginDate, // Start date
+            'end_date' => $endDate, // End date
+            'fq' => 'section_name:("Technology")', // Filter by section (optional)
+        ]);
+
+        if ($response->ok()){
+            $articles = $response->json()['response']['docs'] ?? [];
+            foreach ($articles as $article) {
+                Article::updateOrCreate(
+                    ['url' => $article['web_url']],
+                    [
+                        'title' => $article['headline']['main'],
+                        'description' => $article['snippet'] ?? null,
+                        'url' => $article['web_url'],
+                        'source' => 'New York Times',
+                        'category' => $article['section_name'] ?? 'General',
+                        'published_at' => $article['pub_date'],
+                    ]
+                );
+            }
+            $this->info('New York Times articles fetched successfully.');
+        } else {
+            $this->error('Failed to fetch articles from New York Times.');
+        }
+    }
 
 }
