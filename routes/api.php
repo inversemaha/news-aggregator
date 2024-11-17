@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Api\ArticleController;
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\UserPreferenceController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -22,7 +24,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/articles', [ArticleController::class, 'index']);
         Route::get('/articles/{id}', [ArticleController::class, 'show']);
         Route::post('/preferences', [UserPreferenceController::class, 'store']);
-        Route::get('/personalized-feed', [ArticleController::class, 'personalizedFeed']);
+        Route::get('/personalized-feed', [UserPreferenceController::class, 'personalizedFeed']);
     });
 
 });
