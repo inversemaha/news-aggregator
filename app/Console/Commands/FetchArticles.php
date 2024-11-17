@@ -70,5 +70,36 @@ class FetchArticles extends Command
         }
     }
 
+    private function fetchFromGuardianApi()
+    {
+        $apikey = env('GUARDIAN_API_KEY');
+        $response = Http::get('https://content.guardianapis.com/search', [
+            'api-key' => $apikey,
+            'section' => 'technology',
+            'show-fields' => 'headline,bodyText,webUrl',
+            'page-size' => 10,
+        ]);
+
+        if ($response->ok()){
+            $articles = $response->json()['response']['results'] ?? [];
+            foreach ($articles as $article) {
+                Article::updateOrCreate(
+                    ['url' => $article['webUrl']],
+                    [
+                        'title' => $article['fields']['headline'],
+                        'description' => $article['fields']['bodyText'],
+                        'url' => $article['webUrl'],
+                        'source' => 'The Guardian',
+                        'category' => $article['sectionName'] ?? 'General',
+                        'published_at' => $article['webPublicationDate'],
+                    ]
+                );
+            }
+            $this->info('The Guardian articles fetched successfully.');
+        } else {
+            $this->error('Failed to fetch articles from The Guardian.');
+        }
+    }
+
 
 }
