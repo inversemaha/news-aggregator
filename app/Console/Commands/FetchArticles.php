@@ -28,6 +28,7 @@ class FetchArticles extends Command
     public function handle()
     {
         $this->info('Fetching articles...');
+
         // Fetch articles from NewsAPI
         $this->fetchFromNewsAPI();
 
@@ -60,6 +61,7 @@ class FetchArticles extends Command
                         'url' => $article['url'],
                         'source' => 'NewsAPI',
                         'category' => $article['source']['name'] ?? 'General',
+                        'author' => $article['author'] ?? null,
                         'published_at' => $article['publishedAt'],
                     ]
                 );
@@ -91,6 +93,7 @@ class FetchArticles extends Command
                         'url' => $article['webUrl'],
                         'source' => 'The Guardian',
                         'category' => $article['sectionName'] ?? 'General',
+                        'author' => null,
                         'published_at' => $article['webPublicationDate'],
                     ]
                 );
@@ -127,6 +130,7 @@ class FetchArticles extends Command
                         'url' => $article['web_url'],
                         'source' => 'New York Times',
                         'category' => $article['section_name'] ?? 'General',
+                        'author' => $article['byline']['original'] ?? null,
                         'published_at' => $article['pub_date'],
                     ]
                 );
