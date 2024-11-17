@@ -1,0 +1,65 @@
+version: '3.8'
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: news-aggregator-app
+        container_name: news-aggregator-app
+        restart: always
+        ports:
+            - "8000:8000"
+        environment:
+            - APP_ENV=local
+            - APP_DEBUG=true
+            - APP_KEY=${APP_KEY}
+            - DB_CONNECTION=mysql
+            - DB_HOST=mysql
+            - DB_PORT=3306
+            - DB_DATABASE=news_aggregator
+            - DB_USERNAME=root
+            - DB_PASSWORD=
+        volumes:
+            - .:/var/www/html
+        depends_on:
+            - mysql
+        networks:
+            - news-network
+
+    mysql:
+        image: mysql:8.0
+        container_name: news-aggregator-mysql
+        restart: always
+        ports:
+            - "3306:3306"
+        environment:
+            MYSQL_DATABASE: news_aggregator
+            MYSQL_USER: root
+            MYSQL_PASSWORD: ""
+            MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+        volumes:
+            - db_data:/var/lib/mysql
+        networks:
+            - news-network
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: news-aggregator-phpmyadmin
+        restart: always
+        ports:
+            - "8080:80"
+        environment:
+            PMA_HOST: mysql
+            PMA_PORT: 3306
+            PMA_USER: root
+            PMA_PASSWORD: ""
+        depends_on:
+            - mysql
+        networks:
+            - news-network
+
+volumes:
+    db_data:
+
+networks:
+    news-network:
