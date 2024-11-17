@@ -10,6 +10,18 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
+    /**
+     * @OA\Schema(
+     *     schema="User",
+     *     description="User model",
+     *     @OA\Property(property="id", type="integer", description="User ID"),
+     *     @OA\Property(property="name", type="string", description="User's full name"),
+     *     @OA\Property(property="email", type="string", format="email", description="User's email address"),
+     *     @OA\Property(property="created_at", type="string", format="date-time", description="Timestamp when the user was created"),
+     *     @OA\Property(property="updated_at", type="string", format="date-time", description="Timestamp when the user was last updated")
+     * )
+     */
+
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
