@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Article;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class ArticleController extends Controller
 {
@@ -23,26 +24,34 @@ class ArticleController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Article::query();
+        // Generate a unique cache key based on query parameters
+        $cacheKey = 'articles_' . bcrypt(serialize($request->all()));
 
-        if ($request->filled('keyword')){
-            $query -> where('title', 'like', '%'.$request->keyword.'%')
-                    ->orWhere('description', 'like', '%'.$request->keyword.'%');
-        }
+        // Fetch data from the cache if available, or execute the query and store the result in the cache
+        $articles = cache()->remember($cacheKey, now()->addMinutes(10), function () use ($request) {
+            $query = Article::query();
 
-        if ($request->filled('date')){
-            $query -> whereDate('published_at', $request->date);
-        }
+            if ($request->filled('keyword')) {
+                $query->where('title', 'like', '%' . $request->keyword . '%')
+                    ->orWhere('description', 'like', '%' . $request->keyword . '%');
+            }
 
-        if ($request->filled('category')){
-            $query -> where('category', $request->category);
-        }
+            if ($request->filled('date')) {
+                $query->whereDate('published_at', $request->date);
+            }
 
-        if ($request->filled('source')){
-            $query -> where('source', $request->source);
-        }
+            if ($request->filled('category')) {
+                $query->where('category', $request->category);
+            }
 
-        return response()->json($query->paginate(10));
+            if ($request->filled('source')) {
+                $query->where('source', $request->source);
+            }
+
+            return $query->paginate(10);
+        });
+
+        return response()->json($articles);
     }
 
     /**
@@ -59,7 +68,10 @@ class ArticleController extends Controller
 
     public function show($id)
     {
-        $article = Article::findOrFail($id);
+        $article = Cache::remember("article_{$id}", now()->addMinutes(10), function () use ($id) {
+            return Article::findOrFail($id);
+        });
+
         return response()->json($article);
     }
 }
